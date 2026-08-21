@@ -62,7 +62,9 @@ node scripts/sync-skills.mjs --mark-baseline superpowers --yes
 ## 验证
 
 ```bash
-node scripts/validate-skills.mjs
+npm run validate
+npm run test:sync
+npm run test:extension
 git diff --check
 ```
 

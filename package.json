@@ -11,6 +11,8 @@
   },
   "scripts": {
     "validate": "node scripts/validate-skills.mjs",
-    "sync": "node scripts/sync-skills.mjs"
+    "sync": "node scripts/sync-skills.mjs",
+    "test:sync": "node scripts/test-sync.mjs",
+    "test:extension": "node scripts/test-extension.mjs"
   }
 }
