@@ -69,3 +69,12 @@
 - 当前轮和会话累计都能观测到对应 skill。
 - 已发现但没有调用或读取的 skill 不出现在已使用列表。
 - 状态栏使用 `🐂🐎`，统计只在 Pi UI 和 session metadata 中出现，不进入模型上下文。
+
+## 7. 证据调试
+
+详见 [`debugging-with-evidence.md`](debugging-with-evidence.md)。核心验收是：
+
+- 只有日志、没有代码或环境时，状态为 `blocked`，不能声称已定位。
+- 有可执行复现时，修复前后必须运行同一原始场景。
+- 原始场景仍失败时，状态为 `unverified` 或 `not-reproduced`，不能说“已修复”。
+- 间歇性问题优先补充关联 ID、时间戳、状态转移和并发证据，不把一次成功当成修复。

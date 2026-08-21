@@ -27,6 +27,7 @@ extension(pi);
 const skills = [
   { name: "adaptive-workflow", filePath: `${process.cwd()}/skills/adaptive-workflow/SKILL.md` },
   { name: "reviewable-delivery", filePath: `${process.cwd()}/skills/reviewable-delivery/SKILL.md` },
+  { name: "debugging-with-evidence", filePath: `${process.cwd()}/skills/debugging-with-evidence/SKILL.md` },
 ];
 const ctx = {
   mode: "tui",
@@ -63,6 +64,31 @@ if (entries[0].data.skills.join(",") !== "adaptive-workflow,reviewable-delivery"
   throw new Error(JSON.stringify(entries));
 }
 if (!statuses.at(-1)?.[1].startsWith("🐂🐎 2 skills")) throw new Error("status icon/count missing");
+
+const transformed = await handlers.get("input")({ source: "interactive", text: "调试 webhook 偶发失败" }, ctx);
+if (transformed?.action !== "transform" || transformed.text !== "/skill:debugging-with-evidence webhook 偶发失败") {
+  throw new Error(`debug prefix was not transformed: ${JSON.stringify(transformed)}`);
+}
+await handlers.get("before_agent_start")({
+  prompt: "<skill name=\"debugging-with-evidence\" location=\"/tmp/debugging-with-evidence/SKILL.md\">\nbody\n</skill>",
+  systemPrompt: "base",
+  systemPromptOptions: { skills },
+}, ctx);
+await handlers.get("tool_call")({
+  toolName: "read",
+  input: { path: `${process.cwd()}/skills/debugging-with-evidence/SKILL.md` },
+}, ctx);
+await handlers.get("agent_settled")({}, ctx);
+if (entries.length !== 2) throw new Error(`expected two persisted entries, got ${entries.length}`);
+if (entries[1].data.skills.join(",") !== "adaptive-workflow,debugging-with-evidence") {
+  throw new Error(JSON.stringify(entries[1]));
+}
+if (!statuses.at(-1)?.[1].startsWith("🐂🐎 3 skills")) throw new Error("debug skill was not counted");
+
 await commands.get("fast").handler("change timeout", ctx);
 if (sent[0] !== "快修 change timeout") throw new Error(`unexpected command message: ${sent[0]}`);
+const debugAlias = await handlers.get("input")({ source: "interactive", text: "/debug investigate logs" }, ctx);
+if (debugAlias?.action !== "transform" || debugAlias.text !== "/skill:debugging-with-evidence investigate logs") {
+  throw new Error(`debug alias was not transformed: ${JSON.stringify(debugAlias)}`);
+}
 console.log("extension smoke passed");

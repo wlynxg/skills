@@ -38,6 +38,7 @@ description: Use when deciding how much process a coding task needs, when a smal
 
 - 文案、格式、CSS、简单配置：运行现有 lint/build 或做最小人工检查。
 - 局部业务行为：复用已有测试；只有缺少保护且行为值得长期保留时才加一个聚焦测试。
+- 日志、异常、测试失败或“上次修复仍然复现”：加载 `debugging-with-evidence`，先建立原始复现和证据链。
 - 稳定可复现的 bug：增加一个能复现并防止回归的检查。
 - 安全、权限、金额、迁移、并发、数据写入：提高到 `deep`，使用集成验证；必要时才采用 TDD。
 

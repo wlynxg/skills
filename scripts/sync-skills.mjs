@@ -61,8 +61,8 @@ function parseNameStatus(raw) {
 }
 
 function listSkillFiles(repo, commit) {
-  const output = git(repo, ["ls-tree", "-r", "--name-only", commit, "--", "skills/"]);
-  return output.split(/\r?\n/).filter(path => /^skills\/.+\/SKILL\.md$/.test(path));
+  const output = git(repo, ["ls-tree", "-r", "--name-only", commit]);
+  return output.split(/\r?\n/).filter(path => /(^|\/)SKILL\.md$/.test(path));
 }
 
 function mappedFor(source, upstreamPath) {
@@ -89,8 +89,10 @@ function inspectSource(source) {
       git(repo, ["cat-file", "-e", `${source.baseline}^{commit}`]);
     }
 
-    const rawChanges = git(repo, ["diff", "--name-status", "--find-renames", "-z", source.baseline, current, "--", "skills/"]);
-    const changes = parseNameStatus(rawChanges);
+    const rawChanges = git(repo, ["diff", "--name-status", "--find-renames", "-z", source.baseline, current, "--", "."]);
+    const changes = parseNameStatus(rawChanges).filter(change =>
+      [change.path, change.oldPath].some(path => path && /(^|\/)SKILL\.md$/.test(path)),
+    );
     const mappedPaths = new Set((source.mappings ?? []).map(mapping => mapping.upstream));
     const currentSkillFiles = listSkillFiles(repo, current);
     const candidates = currentSkillFiles.filter(path => !mappedPaths.has(path));
@@ -108,7 +110,7 @@ function inspectSource(source) {
       "",
       "### Changes since baseline",
     ];
-    if (changes.length === 0) lines.push("- No changes under `skills/`.");
+    if (changes.length === 0) lines.push("- No changed `SKILL.md` files.");
     else for (const change of changes) lines.push(`- ${change.status}: ${change.oldPath ? `${change.oldPath} -> ` : ""}${change.path}`);
 
     lines.push("", "### Mapped changes");

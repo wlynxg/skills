@@ -74,6 +74,40 @@
           "rejected": [
             "uniform heavyweight verification for every change"
           ]
+        },
+        {
+          "upstream": "skills/systematic-debugging/SKILL.md",
+          "local": "skills/debugging-with-evidence/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "root-cause investigation before a behavior fix",
+            "single-hypothesis experiments",
+            "trace data backward through callers and boundaries",
+            "re-analyze after a failed fix"
+          ],
+          "adapted": [
+            "reproduction and post-fix evidence are explicit status gates",
+            "TDD is risk-driven rather than mandatory for every debug task"
+          ],
+          "rejected": [
+            "uniform four-phase ceremony for every incident",
+            "mandatory test-first implementation for low-risk debugging"
+          ]
+        },
+        {
+          "upstream": "skills/systematic-debugging/root-cause-tracing.md",
+          "local": "skills/debugging-with-evidence/SKILL.md",
+          "status": "absorbed",
+          "absorbed": [
+            "trace from symptom to immediate cause, caller, input source and original trigger",
+            "use temporary boundary instrumentation when manual tracing stalls"
+          ],
+          "adapted": [
+            "require observed/inferred/unknown labels and file-line evidence in the report"
+          ],
+          "rejected": [
+            "project-specific examples and defense layers unrelated to the current incident"
+          ]
         }
       ]
     },
@@ -100,6 +134,79 @@
           "rejected": [
             "always-on output compression as a workflow requirement",
             "Ponytail-specific runtime status and mode persistence"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "addyosmani-agent-skills",
+      "url": "https://github.com/addyosmani/agent-skills.git",
+      "ref": "main",
+      "baseline": "df1edb2e05487d0aa6d93c747141e0aed1187f25",
+      "mappings": [
+        {
+          "upstream": "skills/debugging-and-error-recovery/SKILL.md",
+          "local": "skills/debugging-with-evidence/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "stop-the-line evidence preservation",
+            "reproduce, localize, reduce, fix, guard and end-to-end verification",
+            "explicit handling for non-reproducible failures"
+          ],
+          "adapted": [
+            "replace generic guard language with a before/after reproduction gate",
+            "use blocked/not-reproduced/unverified/verified-fixed statuses"
+          ],
+          "rejected": [
+            "copying repository-specific test commands and examples verbatim"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wshobson-agents",
+      "url": "https://github.com/wshobson/agents.git",
+      "ref": "main",
+      "baseline": "367cb6a4a182cf7e9b0a17c9429f7411ddd9cf35",
+      "mappings": [
+        {
+          "upstream": "plugins/developer-essentials/skills/debugging-strategies/SKILL.md",
+          "local": "skills/debugging-with-evidence/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "observe, hypothesize, experiment and analyze",
+            "working-versus-broken environment comparison",
+            "binary search and differential debugging"
+          ],
+          "adapted": [
+            "keep only language-agnostic tactics relevant to log-driven Pi work"
+          ],
+          "rejected": [
+            "large multi-language tool reference and speculative profiling catalog"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "warpdotdev-common-skills",
+      "url": "https://github.com/warpdotdev/common-skills.git",
+      "ref": "main",
+      "baseline": "1b811f3c051d916c16fd5f1e8b9690ac52a16195",
+      "mappings": [
+        {
+          "upstream": ".agents/skills/reproduce-bug-report/SKILL.md",
+          "local": "skills/debugging-with-evidence/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "confirmed, partially confirmed, not reproduced and blocked result vocabulary",
+            "record exact environment and reproduction artifacts"
+          ],
+          "adapted": [
+            "use local commands, logs and test artifacts rather than cloud computer-use"
+          ],
+          "rejected": [
+            "Oz cloud agents and mandatory screen recordings",
+            "UI-only reproduction workflow for backend and code-level bugs"
           ]
         }
       ]

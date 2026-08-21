@@ -11,6 +11,7 @@
 - 混合工作模式：自动分级，支持显式覆盖。
 - 条件式需求澄清，不为明确的小改动生成 PRD。
 - 大需求的 review packet、垂直切片、验证证据和高风险暂停点。
+- 日志驱动的证据调试：复现、根因定位、修复前后对照和诚实状态报告。
 - 个人 skill 的创建、评估、吸收和来源记录。
 - Git/GitHub 上游 skill 的差异报告；默认不覆盖本地文件。
 - Pi 扩展：`🐂🐎` 状态、当前轮次和会话累计观测到的 skill。
@@ -44,6 +45,7 @@
 - `深度设计` / `/deep`：强制 `deep`。
 - `只做方案` / `/design`：只输出方案或 review packet。
 - `审查` / `/review`：针对当前差异或交付物生成审查摘要。
+- `调试` / `/debug`：强制使用证据调试流程，先复现再修复。
 
 显式模式只覆盖当前请求，不改变后续请求的默认分级。
 
@@ -69,7 +71,8 @@
 - `reviewable-delivery`：大需求可审查交付。
 - `creating-skills`：创建和评估个人 skill。
 - `absorbing-skills`：选择性吸收上游 skill。
-- `syncing-upstream`：上游差异分析。
+- `syncing-upstream`：上游差异分析（手动调用）。
+- `debugging-with-evidence`：日志和运行时证据驱动的调试。
 
 Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录的 references 文件中。核心 skill 不复制上游全文，避免后续同步时无法判断本地意图。
 
@@ -98,7 +101,8 @@ Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录�
 `extensions/skills-status.js` 是唯一运行时扩展：
 
 - 注入自动分级的短策略和当前显式模式。
-- 注册 `/fast`、`/clarify`、`/deep`、`/design`、`/review`、`/skills`、`/sync-skills`。
+- 注册 `/fast`、`/clarify`、`/deep`、`/design`、`/review`、`/skills`、`/sync-skills`，并将 `/debug` 作为 input 别名处理以避免非交互模式的会话生命周期冲突。
+- 将 `调试 ...` 和 `/debug ...` 展开为 `debugging-with-evidence` skill。
 - 通过已展开的 `<skill name="...">`、原始 `/skill:name` 和对 `SKILL.md` 的 `read` 调用观测 skill 使用。
 - 不把“已发现”误报为“已使用”。自动策略使用 `adaptive-workflow` 时标记为 active。
 - 在底部显示 `🐂🐎 N skills`，在编辑器上方显示本轮和会话累计列表。
@@ -107,13 +111,15 @@ Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录�
 ## Acceptance Criteria
 
 - `pi -e ./extensions/skills-status.js` 能加载且无 TypeScript/JavaScript 语法错误。
-- `pi install /root/skills` 后能发现 6 个本地 skills。
+- `pi install /root/skills` 后能发现 7 个本地 skills。
 - 明确的小改动不会被规则要求生成计划、PRD 或测试套件。
 - 深度任务规则要求 review packet、垂直切片和验证证据。
 - 没有显式用户要求时，TDD 不是默认步骤。
 - 同步脚本在没有网络时给出可读错误，不改动本地 skills 或 manifest。
 - 同步脚本能识别上游新增/修改/删除的 `skills/**` 文件，并区分已映射与未映射。
 - 状态扩展至少能记录显式 `/skill:name` 和读取对应 `SKILL.md` 的情况。
+- 日志或异常调试在无法复现时报告 `blocked`/`not-reproduced`/`unverified`，不声称已修复。
+- 修复后只有原始复现同条件通过时才报告 `verified-fixed`。
 - `🐂🐎` 图标不会修改第三方 ponytail 包。
 
 ## Decisions

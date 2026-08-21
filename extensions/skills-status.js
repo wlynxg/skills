@@ -10,6 +10,7 @@ const SYNC_SCRIPT = join(PACKAGE_ROOT, "scripts", "sync-skills.mjs");
 const MODE_PREFIXES = [
   ["深度设计", "deep"],
   ["只做方案", "design"],
+  ["调试", "debug"],
   ["审查", "review"],
   ["澄清", "clarify"],
   ["快修", "fast"],
@@ -20,6 +21,7 @@ const SLASH_MODES = new Map([
   ["deep", "deep"],
   ["design", "design"],
   ["review", "review"],
+  ["debug", "debug"],
 ]);
 
 const MODE_LABELS = {
@@ -30,6 +32,7 @@ const MODE_LABELS = {
   clarify: "只澄清",
   design: "只做方案",
   review: "审查",
+  debug: "证据调试",
 };
 
 function normalizedPath(path) {
@@ -41,7 +44,8 @@ function getModeFromPrompt(prompt) {
   for (const [prefix, mode] of MODE_PREFIXES) {
     if (text === prefix || text.startsWith(`${prefix} `) || text.startsWith(`${prefix}\n`)) return mode;
   }
-  const slash = text.match(/^\/(fast|clarify|deep|design|review)(?:\s|$)/);
+  if (text.startsWith('<skill name="debugging-with-evidence"')) return "debug";
+  const slash = text.match(/^\/(fast|clarify|deep|design|review|debug)(?:\s|$)/);
   return slash ? SLASH_MODES.get(slash[1]) : undefined;
 }
 
@@ -52,7 +56,10 @@ function compactNames(names, empty = "-") {
 
 function buildPolicy(mode) {
   const selected = mode === "auto" ? "自动判断 fast / normal / deep" : MODE_LABELS[mode] || mode;
-  return `## Personal adaptive workflow\n当前请求模式：${selected}。先读受影响的真实流程，再选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件或批量测试；有歧义时只问会改变实现方向的问题。新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆操作升级为 deep，先做 review packet 和可独立验证的垂直切片。默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。`;
+  const debugPolicy = mode === "debug"
+    ? "当前请求是证据调试：先保存和解析日志，建立原始复现，区分 observed/inferred/unknown，追踪到 file:line；原始复现未在修复后重新通过时，只能报告 blocked/not-reproduced/unverified，禁止声称已修复。"
+    : "";
+  return `## Personal adaptive workflow\n当前请求模式：${selected}。先读受影响的真实流程，再选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件或批量测试；有歧义时只问会改变实现方向的问题。新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆操作升级为 deep，先做 review packet 和可独立验证的垂直切片。默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。${debugPolicy}`;
 }
 
 function skillNameFromPath(filePath, knownSkills) {
@@ -191,9 +198,20 @@ export default function personalPiSkillsExtension(pi) {
 
   pi.on("input", async (event, ctx) => {
     if (event.source === "extension") return;
+    const text = String(event.text || "");
+    const pendingMode = nextOverride;
     beginRequest(ctx);
-    const skillCommand = String(event.text || "").match(/^\/skill:([a-z0-9-]+)/);
+    const skillCommand = text.match(/^\/skill:([a-z0-9-]+)/);
     if (skillCommand) markSkill(skillCommand[1], ctx);
+    if (text === "/debug" || text.startsWith("/debug ")) {
+      return { action: "transform", text: `/skill:debugging-with-evidence ${text.slice(6).trim()}`.trim() };
+    }
+    if (text === "调试" || text.startsWith("调试 ")) {
+      return { action: "transform", text: `/skill:debugging-with-evidence ${text.slice(2).trim()}`.trim() };
+    }
+    if (pendingMode === "debug" && text && !text.startsWith("/skill:")) {
+      return { action: "transform", text: `/skill:debugging-with-evidence ${text}` };
+    }
   });
 
   pi.on("before_agent_start", async (event, ctx) => {
