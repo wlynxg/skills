@@ -105,8 +105,9 @@ Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录�
 - 将 `调试 ...` 和 `/debug ...` 展开为 `debugging-with-evidence` skill。
 - 通过已展开的 `<skill name="...">`、原始 `/skill:name` 和对 `SKILL.md` 的 `read` 调用观测 skill 使用。
 - 不把“已发现”误报为“已使用”。自动策略使用 `adaptive-workflow` 时标记为 active。
-- 在底部显示 `🐂🐎 N skills`，在编辑器上方显示本轮和会话累计列表。
-- 通过隐藏的 custom session entry 保存会话统计，不把统计写进模型上下文。
+- 在底部显示 `🐂🐎 N skills / M uses`，在编辑器上方显示单行的 `skill*count` 累计列表。
+- 同一请求内重复观测同一个 skill 只计一次。
+- 通过隐藏的 custom session entry 保存计数，不把统计写进模型上下文，并兼容旧的 skills 数组记录。
 
 ## Acceptance Criteria
 
@@ -128,5 +129,5 @@ Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录�
 - 来源范围：Git/GitHub 仓库。
 - 工作模式：自动分级 + 显式覆盖。
 - 大需求辅助：总体 review packet + 垂直切片 + 高风险边界暂停。
-- 统计语义：观测到的 skill，而不是模型是否真正遵守了 skill。
+- 统计语义：观测到的 skill，而不是模型是否真正遵守了 skill；按请求去重并累计每个 skill 的使用次数。
 - 默认测试策略：风险驱动；TDD 按需。

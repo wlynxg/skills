@@ -5,6 +5,7 @@ const handlers = new Map();
 const commands = new Map();
 const entries = [];
 const statuses = [];
+const widgets = [];
 const sent = [];
 
 const pi = {
@@ -37,7 +38,9 @@ const ctx = {
     setStatus(key, text) {
       statuses.push([key, text]);
     },
-    setWidget() {},
+    setWidget(key, content) {
+      widgets.push([key, content]);
+    },
     notify() {},
   },
   sessionManager: { getBranch: () => [] },
@@ -57,13 +60,23 @@ await handlers.get("tool_call")({
   toolName: "read",
   input: { path: `${process.cwd()}/skills/reviewable-delivery/SKILL.md` },
 }, ctx);
+await handlers.get("tool_call")({
+  toolName: "read",
+  input: { path: `${process.cwd()}/skills/reviewable-delivery/SKILL.md` },
+}, ctx);
 await handlers.get("agent_settled")({}, ctx);
 
 if (entries.length !== 1) throw new Error(`expected one persisted entry, got ${entries.length}`);
 if (entries[0].data.skills.join(",") !== "adaptive-workflow,reviewable-delivery") {
   throw new Error(JSON.stringify(entries));
 }
-if (!statuses.at(-1)?.[1].startsWith("🐂🐎 2 skills")) throw new Error("status icon/count missing");
+if (entries[0].data.counts["adaptive-workflow"] !== 1 || entries[0].data.counts["reviewable-delivery"] !== 1) {
+  throw new Error(`per-request counts missing: ${JSON.stringify(entries[0].data)}`);
+}
+if (!statuses.at(-1)?.[1].startsWith("🐂🐎 2 skills / 2 uses")) throw new Error("status icon/count missing");
+if (widgets.at(-1)?.[1]?.[0] !== "adaptive-workflow*1, reviewable-delivery*1") {
+  throw new Error(`unexpected single-line widget: ${JSON.stringify(widgets.at(-1))}`);
+}
 
 const transformed = await handlers.get("input")({ source: "interactive", text: "调试 webhook 偶发失败" }, ctx);
 if (transformed?.action !== "transform" || transformed.text !== "/skill:debugging-with-evidence webhook 偶发失败") {
@@ -78,17 +91,34 @@ await handlers.get("tool_call")({
   toolName: "read",
   input: { path: `${process.cwd()}/skills/debugging-with-evidence/SKILL.md` },
 }, ctx);
+await handlers.get("tool_call")({
+  toolName: "read",
+  input: { path: `${process.cwd()}/skills/debugging-with-evidence/SKILL.md` },
+}, ctx);
 await handlers.get("agent_settled")({}, ctx);
 if (entries.length !== 2) throw new Error(`expected two persisted entries, got ${entries.length}`);
 if (entries[1].data.skills.join(",") !== "adaptive-workflow,debugging-with-evidence") {
   throw new Error(JSON.stringify(entries[1]));
 }
-if (!statuses.at(-1)?.[1].startsWith("🐂🐎 3 skills")) throw new Error("debug skill was not counted");
+if (!statuses.at(-1)?.[1].startsWith("🐂🐎 3 skills / 4 uses")) throw new Error("debug skill was not counted");
+if (widgets.at(-1)?.[1]?.[0] !== "adaptive-workflow*2, debugging-with-evidence*1, reviewable-delivery*1") {
+  throw new Error(`unexpected cumulative widget: ${JSON.stringify(widgets.at(-1))}`);
+}
 
 await commands.get("fast").handler("change timeout", ctx);
 if (sent[0] !== "快修 change timeout") throw new Error(`unexpected command message: ${sent[0]}`);
 const debugAlias = await handlers.get("input")({ source: "interactive", text: "/debug investigate logs" }, ctx);
 if (debugAlias?.action !== "transform" || debugAlias.text !== "/skill:debugging-with-evidence investigate logs") {
   throw new Error(`debug alias was not transformed: ${JSON.stringify(debugAlias)}`);
+}
+ctx.sessionManager = {
+  getBranch: () => [
+    { type: "custom", customType: "personal-pi-skills", data: { skills: ["reviewable-delivery"] } },
+    { type: "custom", customType: "personal-pi-skills", data: { counts: { "adaptive-workflow": 2, "debugging-with-evidence": 1 } } },
+  ],
+};
+await handlers.get("session_start")({}, ctx);
+if (widgets.at(-1)?.[1]?.[0] !== "adaptive-workflow*2, debugging-with-evidence*1, reviewable-delivery*1") {
+  throw new Error(`session count restore failed: ${JSON.stringify(widgets.at(-1))}`);
 }
 console.log("extension smoke passed");

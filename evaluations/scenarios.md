@@ -66,7 +66,8 @@
 
 预期：
 
-- 当前轮和会话累计都能观测到对应 skill。
+- 当前 Pi 会话累计列表能观测到对应 skill，并显示每个 skill 的使用次数，例如 `clarifying-requirements*1`。
+- 同一请求内重复调用或读取同一个 skill 只计一次。
 - 已发现但没有调用或读取的 skill 不出现在已使用列表。
 - 状态栏使用 `🐂🐎`，统计只在 Pi UI 和 session metadata 中出现，不进入模型上下文。
 

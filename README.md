@@ -25,13 +25,19 @@ pi install /root/skills
 
 ## 状态
 
-Pi 底部状态会显示：
+Pi 底部状态会显示唯一 skill 数和总使用次数：
 
 ```text
-🐂🐎 2 skills
+🐂🐎 2 skills / 4 uses
 ```
 
-编辑器上方会列出当前轮次和当前会话中**观测到**的 skills。观测到不等于模型一定遵守了 skill；统计会尽量记录原始 `/skill:name`、展开的 skill block，以及读取 `SKILL.md` 的行为。
+编辑器上方显示当前 Pi 会话累计观测到的 skill 及每个 skill 的使用次数：
+
+```text
+adaptive-workflow*3, debugging-with-evidence*1
+```
+
+同一个请求内通过原始命令、展开的 skill block 和读取 `SKILL.md` 等多个途径观测到同一个 skill，只计一次；下一次请求再次使用才增加计数。观测到不等于模型一定遵守了 skill。
 
 可用命令：
 

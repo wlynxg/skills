@@ -54,6 +54,24 @@ function compactNames(names, empty = "-") {
   return list.length > 0 ? list.join(", ") : empty;
 }
 
+function formatSkillCounts(counts, empty = "-") {
+  const list = [...counts.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([name, count]) => `${name}*${count}`);
+  return list.length > 0 ? list.join(", ") : empty;
+}
+
+function totalSkillUses(counts) {
+  let total = 0;
+  for (const count of counts.values()) total += count;
+  return total;
+}
+
+function addSkillCount(counts, name, amount = 1) {
+  if (!name || !Number.isInteger(amount) || amount <= 0) return;
+  counts.set(name, (counts.get(name) || 0) + amount);
+}
+
 function buildPolicy(mode) {
   const selected = mode === "auto" ? "自动判断 fast / normal / deep" : MODE_LABELS[mode] || mode;
   const debugPolicy = mode === "debug"
@@ -77,35 +95,38 @@ export default function personalPiSkillsExtension(pi) {
   let activeMode = "auto";
   let lastPrompt;
   let currentSkills = new Set();
-  let sessionSkills = new Set();
+  let sessionSkillCounts = new Map();
   let knownSkills = new Map();
   let lastCtx;
 
   function render(ctx = lastCtx) {
     if (!ctx?.ui) return;
     lastCtx = ctx;
-    const status = `${ICON} ${sessionSkills.size} skill${sessionSkills.size === 1 ? "" : "s"}`;
+    const uniqueSkills = sessionSkillCounts.size;
+    const uses = totalSkillUses(sessionSkillCounts);
+    const status = `${ICON} ${uniqueSkills} skill${uniqueSkills === 1 ? "" : "s"} / ${uses} use${uses === 1 ? "" : "s"}`;
     ctx.ui.setStatus("personal-pi-skills", status);
-    ctx.ui.setWidget("personal-pi-skills", [
-      `本轮: ${compactNames(currentSkills)}`,
-      `会话: ${compactNames(sessionSkills)}`,
-    ]);
+    ctx.ui.setWidget("personal-pi-skills", [formatSkillCounts(sessionSkillCounts)]);
   }
 
   function markSkill(name, ctx = lastCtx) {
     if (!name) return;
     currentSkills.add(name);
-    sessionSkills.add(name);
     render(ctx);
   }
 
   function restoreSession(ctx) {
     currentSkills = new Set();
-    sessionSkills = new Set();
+    sessionSkillCounts = new Map();
     const entries = ctx?.sessionManager?.getBranch?.() || [];
     for (const entry of entries) {
       if (entry?.type !== "custom" || entry.customType !== ENTRY_TYPE) continue;
-      for (const name of entry.data?.skills || []) sessionSkills.add(name);
+      const counts = entry.data?.counts;
+      if (counts && typeof counts === "object" && !Array.isArray(counts)) {
+        for (const [name, amount] of Object.entries(counts)) addSkillCount(sessionSkillCounts, name, amount);
+      } else {
+        for (const name of entry.data?.skills || []) addSkillCount(sessionSkillCounts, name);
+      }
     }
     render(ctx);
   }
@@ -142,8 +163,8 @@ export default function personalPiSkillsExtension(pi) {
     const availableNames = available.map(skill => skill.name).sort();
     const message = [
       `${ICON} 已发现: ${compactNames(availableNames)}`,
-      `本轮观测: ${compactNames(currentSkills)}`,
-      `会话观测: ${compactNames(sessionSkills)}`,
+      `观测: ${formatSkillCounts(sessionSkillCounts)}`,
+      `总使用次数: ${totalSkillUses(sessionSkillCounts)}`,
       "观测到不等于模型一定遵守。",
     ].join("\n");
     ctx.ui.notify(message, "info");
@@ -237,8 +258,12 @@ export default function personalPiSkillsExtension(pi) {
 
   pi.on("agent_settled", async (_event, ctx) => {
     if (currentSkills.size > 0) {
+      const skills = [...currentSkills].sort();
+      const counts = Object.fromEntries(skills.map(name => [name, 1]));
+      for (const name of skills) addSkillCount(sessionSkillCounts, name);
       pi.appendEntry(ENTRY_TYPE, {
-        skills: [...currentSkills].sort(),
+        skills,
+        counts,
         mode: activeMode,
         timestamp: Date.now(),
       });
