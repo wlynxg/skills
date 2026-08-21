@@ -1,9 +1,12 @@
 ---
 name: syncing-upstream
 description: Use when checking Git/GitHub skill sources for new upstream changes, reviewing a sync report, or selectively updating a local skill without losing personal adaptations.
+disable-model-invocation: true
 ---
 
 # Syncing Upstream Skills
+
+This skill is manual-only. Load it with `/skill:syncing-upstream` when you explicitly want to inspect or absorb upstream changes; do not invoke it for ordinary coding tasks.
 
 ## Core Rule
 

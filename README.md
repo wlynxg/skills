@@ -41,7 +41,7 @@ Pi 底部状态会显示：
 
 ## 上游同步
 
-来源和吸收记录在 `sources/manifest.json`。先分析：
+来源和吸收记录在 `sources/manifest.json`。`syncing-upstream` 是手动 skill，不会被模型自动调用；需要时显式使用 `/skill:syncing-upstream`，或直接使用 `/sync-skills` 命令。先分析：
 
 ```bash
 node scripts/sync-skills.mjs
