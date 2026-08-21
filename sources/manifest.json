@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "superpowers",
+      "url": "https://github.com/obra/superpowers.git",
+      "ref": "main",
+      "baseline": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
+      "mappings": [
+        {
+          "upstream": "skills/brainstorming/SKILL.md",
+          "local": "skills/clarifying-requirements/SKILL.md",
+          "status": "absorbed",
+          "absorbed": [
+            "classify work by scope before choosing process",
+            "surface assumptions and clarify intent before implementation",
+            "upgrade the process when hidden complexity appears"
+          ],
+          "adapted": [
+            "bounded work gets a short in-chat design instead of a mandatory spec file",
+            "explicit fast mode can skip the design gate for clear low-risk changes"
+          ],
+          "rejected": [
+            "hard approval gate for every change",
+            "mandatory PRD/spec artifact for bounded tasks"
+          ]
+        },
+        {
+          "upstream": "skills/writing-skills/SKILL.md",
+          "local": "skills/creating-skills/SKILL.md",
+          "status": "absorbed",
+          "absorbed": [
+            "progressive disclosure",
+            "discovery-oriented descriptions",
+            "pressure scenarios for discipline rules",
+            "RED/GREEN/REFACTOR for skill authoring"
+          ],
+          "adapted": [
+            "skill evaluation is proportional to the rule's risk",
+            "pure reference skills do not need pressure scenarios"
+          ],
+          "rejected": [
+            "mandatory subagent campaign when no subagent tool is installed",
+            "strict TDD for ordinary production code"
+          ]
+        },
+        {
+          "upstream": "skills/writing-skills/testing-skills-with-subagents.md",
+          "local": "skills/creating-skills/references/evaluating-skills.md",
+          "status": "absorbed",
+          "absorbed": [
+            "baseline before guidance",
+            "combined pressure scenarios",
+            "capture rationalizations and close loopholes"
+          ],
+          "adapted": [
+            "use a fresh Pi process or manual control when pi-subagents is unavailable"
+          ],
+          "rejected": [
+            "treating every skill as a discipline-enforcing skill"
+          ]
+        },
+        {
+          "upstream": "skills/verification-before-completion/SKILL.md",
+          "local": "skills/reviewable-delivery/SKILL.md",
+          "status": "absorbed",
+          "absorbed": [
+            "evidence before completion claims",
+            "run the relevant verification command before reporting success"
+          ],
+          "adapted": [
+            "verification is selected by risk and slice rather than one universal checklist"
+          ],
+          "rejected": [
+            "uniform heavyweight verification for every change"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ponytail",
+      "url": "https://github.com/DietrichGebert/ponytail.git",
+      "ref": "main",
+      "baseline": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+      "mappings": [
+        {
+          "upstream": "skills/ponytail/SKILL.md",
+          "local": "skills/adaptive-workflow/SKILL.md",
+          "status": "absorbed",
+          "absorbed": [
+            "reuse existing code before adding abstractions",
+            "stdlib and native platform before dependencies",
+            "fewest files and shortest working diff",
+            "root-cause fixes over caller-by-caller patches"
+          ],
+          "adapted": [
+            "minimality is applied after understanding and risk classification",
+            "non-trivial logic keeps one runnable verification check"
+          ],
+          "rejected": [
+            "always-on output compression as a workflow requirement",
+            "Ponytail-specific runtime status and mode persistence"
+          ]
+        }
+      ]
+    }
+  ]
+}

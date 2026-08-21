@@ -1,0 +1,16 @@
+{
+  "name": "personal-pi-skills",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal Pi workflow skills with adaptive execution and upstream tracking",
+  "keywords": ["pi-package", "skills", "workflow"],
+  "pi": {
+    "extensions": ["./extensions/skills-status.js"],
+    "skills": ["./skills"]
+  },
+  "scripts": {
+    "validate": "node scripts/validate-skills.mjs",
+    "sync": "node scripts/sync-skills.mjs"
+  }
+}
