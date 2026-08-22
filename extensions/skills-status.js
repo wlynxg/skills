@@ -14,6 +14,7 @@ const MODE_PREFIXES = [
   ["审查", "review"],
   ["澄清", "clarify"],
   ["快修", "fast"],
+  ["普通", "normal"],
 ];
 const SLASH_MODES = new Map([
   ["fast", "fast"],
@@ -22,6 +23,7 @@ const SLASH_MODES = new Map([
   ["design", "design"],
   ["review", "review"],
   ["debug", "debug"],
+  ["normal", "normal"],
 ]);
 
 const MODE_LABELS = {
@@ -45,7 +47,7 @@ function getModeFromPrompt(prompt) {
     if (text === prefix || text.startsWith(`${prefix} `) || text.startsWith(`${prefix}\n`)) return mode;
   }
   if (text.startsWith('<skill name="debugging-with-evidence"')) return "debug";
-  const slash = text.match(/^\/(fast|clarify|deep|design|review|debug)(?:\s|$)/);
+  const slash = text.match(/^\/(fast|clarify|deep|design|review|debug|normal)(?:\s|$)/);
   return slash ? SLASH_MODES.get(slash[1]) : undefined;
 }
 
@@ -77,7 +79,7 @@ function buildPolicy(mode) {
   const debugPolicy = mode === "debug"
     ? "当前请求是证据调试：先保存和解析日志，建立原始复现，区分 observed/inferred/unknown，追踪到 file:line；原始复现未在修复后重新通过时，只能报告 blocked/not-reproduced/unverified，禁止声称已修复。"
     : "";
-  return `## Personal adaptive workflow\n当前请求模式：${selected}。先读受影响的真实流程，再选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件或批量测试；有歧义时只问会改变实现方向的问题。新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆操作升级为 deep，先做 review packet 和可独立验证的垂直切片。默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。${debugPolicy}`;
+  return `<!-- personal-pi-mode:${mode} -->\n## Personal adaptive workflow\n当前请求模式：${selected}。先读受影响的真实流程，再选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件或批量测试；有歧义时只问会改变实现方向的问题。新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆操作升级为 deep，先做 review packet 和可独立验证的垂直切片。默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。${debugPolicy}`;
 }
 
 function skillNameFromPath(filePath, knownSkills) {
@@ -186,6 +188,10 @@ export default function personalPiSkillsExtension(pi) {
   pi.registerCommand("fast", {
     description: "Use fast workflow for the next request or provided task",
     handler: (args, ctx) => modeCommand("快修", "fast", args, ctx),
+  });
+  pi.registerCommand("normal", {
+    description: "Use normal workflow for the next request or provided task",
+    handler: (args, ctx) => modeCommand("普通", "normal", args, ctx),
   });
   pi.registerCommand("clarify", {
     description: "Clarify a request without implementing it",
