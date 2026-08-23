@@ -58,6 +58,8 @@ const before = await handlers.get("before_agent_start")({
 if (!before.systemPrompt.includes("当前请求模式：自动判断")) throw new Error("automatic policy missing");
 if (!before.systemPrompt.includes("输出契约：先回答用户当前问题")) throw new Error("concise reply policy missing");
 if (!before.systemPrompt.includes("纯问答或状态确认使用 1-3 句")) throw new Error("concise reply budget missing");
+if (!before.systemPrompt.includes("不确定：... 和 遗漏：...")) throw new Error("uncertainty footer policy missing");
+if (!before.systemPrompt.includes("用户明确要求精确字符串")) throw new Error("strict output exemption missing");
 await handlers.get("tool_call")({
   toolName: "read",
   input: { path: `${process.cwd()}/skills/reviewable-delivery/SKILL.md` },
