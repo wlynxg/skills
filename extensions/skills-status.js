@@ -76,10 +76,14 @@ function addSkillCount(counts, name, amount = 1) {
 
 function buildPolicy(mode) {
   const selected = mode === "auto" ? "自动判断 fast / normal / deep" : MODE_LABELS[mode] || mode;
+  const riskPolicy = mode === "deep"
+    ? "当前请求为深度任务：先建立 review packet 和可独立验证的垂直切片。"
+    : "只有实际出现新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆风险时才升级 deep。";
+  const replyPolicy = "输出契约：先回答用户当前问题。默认简洁：纯问答或状态确认使用 1-3 句；需要枚举时使用一个紧凑列表。实际改动完成时只说明变更、实际验证和必要风险，最多 3 个短要点。不要复述请求、逐步播报常规过程，或固定附加不确定、遗漏、后续建议；只有用户要求详情、存在实质风险/阻塞，或处于 deep/review/debug 时再展开。执行中只在方向变化、遇阻或完成有意义阶段时发一条短更新。";
   const debugPolicy = mode === "debug"
-    ? "当前请求是证据调试：先保存和解析日志，建立原始复现，区分 observed/inferred/unknown，追踪到 file:line；原始复现未在修复后重新通过时，只能报告 blocked/not-reproduced/unverified，禁止声称已修复。"
+    ? "证据调试仍须先建立原始复现；原始复现未在修复后重新通过时，只能报告 blocked/not-reproduced/unverified。最终先给状态和决定性证据，完整报告按需展开。"
     : "";
-  return `<!-- personal-pi-mode:${mode} -->\n## Personal adaptive workflow\n当前请求模式：${selected}。先读受影响的真实流程，再选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件或批量测试；有歧义时只问会改变实现方向的问题。新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆操作升级为 deep，先做 review packet 和可独立验证的垂直切片。默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。${debugPolicy}`;
+  return `<!-- personal-pi-mode:${mode} -->\n## Personal adaptive workflow\n当前请求模式：${selected}。先读最少必要上下文，选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件、批量测试或无关重构；有歧义时只问会改变实现方向的问题。${riskPolicy} 默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。${replyPolicy}${debugPolicy}`;
 }
 
 function skillNameFromPath(filePath, knownSkills) {

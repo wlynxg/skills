@@ -77,15 +77,15 @@ description: Use when logs, stack traces, failing tests, crashes, intermittent b
 
 ## Feedback Contract
 
-调试反馈使用 [debug-report.md](references/debug-report.md) 的结构，至少包含：
+先给状态、最直接的证据和当前结论，通常用 2-4 句或几个短要点。默认只写与当前状态有关的项，不机械重复完整报告；用户要求留档、任务高风险或结论需要完整证据时，再使用 [debug-report.md](references/debug-report.md) 的完整结构。
 
-1. 状态和环境。
-2. 实际/期望行为与原始复现命令。
-3. 已确认根因，附 `file:line` 和运行时证据。
-4. 未确认假设及下一步实验。
-5. 修改文件和为什么修改。
-6. 修复前后验证结果。
-7. 剩余风险、阻塞项和未验证内容。
+需要覆盖的事实按实际情况选择：
+
+1. 状态、环境和原始复现命令。
+2. 已确认根因及其 `file:line` 和运行时证据。
+3. 未确认假设及下一步最小实验。
+4. 修改文件和原因。
+5. 修复前后验证结果，以及真正剩余的风险或阻塞。
 
 ## Stop Conditions
 

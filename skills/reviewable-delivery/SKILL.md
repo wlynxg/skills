@@ -48,14 +48,9 @@ description: Use when a change spans multiple modules, is difficult for one pers
 
 ## Human Review Surface
 
-交付给用户的顺序固定为：
+先用一段简短结论说明当前结果和主要风险。默认只给 review packet 的位置、每个已完成切片的状态，以及支撑结论的关键证据；不要把 packet、完整 diff、全部文件清单或完整测试输出重复贴进聊天。
 
-1. 一段总体结论和风险。
-2. review packet 的变化摘要。
-3. 每个切片的 diff、验证证据和未决点。
-4. 最后才是完整文件清单和测试总结果。
-
-用户不需要一次性审阅整个实现；优先审查目标、不变量、公共边界和每个切片的实际行为。
+用户要求详细审查、需要确认高风险边界，或结论必须展示更多证据时，再按目标、不变量、关键风险和切片证据展开。用户不需要一次性审阅整个实现；优先审查公共边界和每个切片的实际行为。
 
 ## Completion Gate
 
