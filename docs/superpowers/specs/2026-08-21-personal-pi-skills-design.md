@@ -14,7 +14,7 @@
 - 日志驱动的证据调试：复现、根因定位、修复前后对照和诚实状态报告。
 - 个人 skill 的创建、评估、吸收和来源记录。
 - Git/GitHub 上游 skill 的差异报告；默认不覆盖本地文件。
-- Pi 扩展：`🐂🐎` 状态、会话累计观测到的 skill，以及默认高级模型 Router。
+- Pi 扩展：`🐂🐎` 状态和会话累计观测到的 skill。
 
 不包含：
 
@@ -46,7 +46,6 @@
 - `只做方案` / `/design`：只输出方案或 review packet。
 - `审查` / `/review`：针对当前差异或交付物生成审查摘要。
 - `调试` / `/debug`：强制使用证据调试流程，先复现再修复。
-- `/route fast|normal|deep|debug|auto`：手动覆盖模型档位并跳过自动 Router。
 
 显式模式只覆盖当前请求，不改变后续请求的默认分级。
 
@@ -99,7 +98,7 @@ Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录�
 
 ## Pi Extensions
 
-`extensions/skills-status.js` 负责 skill 统计和工作流模式；`extensions/model-router.js` 负责默认模型调度。Router 在主 agent 开始前用高级 judge 做隔离判断，按档位切换执行模型，agent settle 后恢复原模型；手动档位优先，调度失败回退当前模型。
+`extensions/skills-status.js` 负责 skill 统计和工作流模式。
 
 `extensions/skills-status.js`：
 
@@ -115,7 +114,7 @@ Skill 的 `SKILL.md` 保持短小；重型模板或评估说明放在同目录�
 ## Acceptance Criteria
 
 - `pi -e ./extensions/skills-status.js` 能加载且无 TypeScript/JavaScript 语法错误。
-- `pi install /root/skills` 后能发现 7 个本地 skills 和模型路由扩展。
+- `pi install /root/skills` 后能发现 7 个本地 skills 和状态扩展。
 - 明确的小改动不会被规则要求生成计划、PRD 或测试套件。
 - 深度任务规则要求 review packet、垂直切片和验证证据。
 - 没有显式用户要求时，TDD 不是默认步骤。
