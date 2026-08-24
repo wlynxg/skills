@@ -4,11 +4,31 @@
 
 ## 安装
 
+推荐从 GitHub 安装，方便在其他设备上使用和更新：
+
+```bash
+pi install git:github.com/wlynxg/skills@main
+```
+
+更新到最新版本：
+
+```bash
+pi update git:github.com/wlynxg/skills@main
+```
+
+安装或更新后运行 `/reload`，或者重启 Pi。确认当前安装来源：
+
+```bash
+pi list
+```
+
+本地仓库路径只用于开发和调试：
+
 ```bash
 pi install /root/skills
 ```
 
-安装后运行 `/reload`。如果同时使用上游 Superpowers，建议在 `pi config` 中关闭它的自动 bootstrap 扩展，只保留需要时显式调用的 skills。
+同一环境只保留 GitHub 或本地其中一种来源，避免同一套 skills 被重复加载。若同时使用上游 Superpowers，建议在 `pi config` 中关闭它的自动 bootstrap 扩展，只保留需要时显式调用的 skills。
 
 ## 工作模式
 
