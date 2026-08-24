@@ -71,6 +71,22 @@ adaptive-workflow*3, debugging-with-evidence*1
 
 `/debug` 会显式加载证据调试 skill；普通日志、报错和异常任务也会按 skill 描述自动匹配。
 
+## Skill 来源
+
+这些 skills 是针对 Pi 的本地改写和组合，不是对上游仓库的整套复制：
+
+| 本地 skill | 主要来源 | 本地处理 |
+|---|---|---|
+| `adaptive-workflow` | [Ponytail](https://github.com/DietrichGebert/ponytail) | 吸收复用已有代码、标准库优先和最小 diff 原则，改成按风险分级。 |
+| `clarifying-requirements` | [Superpowers](https://github.com/obra/superpowers) 的 `brainstorming` | 保留高影响问题澄清，去掉小任务强制 PRD/spec。 |
+| `creating-skills` | [Superpowers](https://github.com/obra/superpowers) 的 `writing-skills` 及其 skill 测试方法 | 保留渐进披露、压力场景和行为评估，按规则风险裁剪。 |
+| `reviewable-delivery` | [Superpowers](https://github.com/obra/superpowers) 的 `verification-before-completion` | 将证据门改成 review packet、垂直切片和按风险验证。 |
+| `debugging-with-evidence` | [Superpowers](https://github.com/obra/superpowers)、[Addy Osmani agent-skills](https://github.com/addyosmani/agent-skills)、[Wshobson agents](https://github.com/wshobson/agents)、[Warp common-skills](https://github.com/warpdotdev/common-skills) | 融合复现、根因追踪、差分实验和 `blocked`/`unverified` 等证据状态，适配本地代码调试。 |
+| `absorbing-skills` | 本地工作流 | 记录吸收、改写、拒绝和验证理由。 |
+| `syncing-upstream` | 本地工作流 | 根据来源 manifest 生成上游差异报告，不自动覆盖本地 skills。 |
+
+完整的 Git URL、baseline commit、文件映射、吸收内容、改写内容和拒绝内容见 [`sources/manifest.json`](sources/manifest.json)。
+
 ## 上游同步
 
 来源和吸收记录在 `sources/manifest.json`。`syncing-upstream` 是手动 skill，不会被模型自动调用；需要时显式使用 `/skill:syncing-upstream`，或直接使用 `/sync-skills` 命令。先分析：
