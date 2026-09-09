@@ -36,6 +36,7 @@ description: Use when deciding how much process a coding task needs, when a smal
 
 ## Verification By Risk
 
+- **铁律约束**：在声称任何改动“已完成”、“已修复”前，必须严格遵守 `verification-before-completion`，先运行验证命令并检查实际输出，**严禁凭静态代码阅读声称“没毛病”**。
 - 文案、格式、CSS、简单配置：运行现有 lint/build 或做最小人工检查。
 - 局部业务行为：复用已有测试；只有缺少保护且行为值得长期保留时才加一个聚焦测试。
 - 日志、异常、测试失败或“上次修复仍然复现”：加载 `debugging-with-evidence`，先建立原始复现和证据链。
