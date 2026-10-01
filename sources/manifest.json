@@ -17,12 +17,13 @@
             "upgrade the process when hidden complexity appears"
           ],
           "adapted": [
-            "bounded work gets a short in-chat design instead of a mandatory spec file",
-            "explicit fast mode can skip the design gate for clear low-risk changes"
+            "普通功能用聊天内短设计，但新功能、契约和流程变化需要批准",
+            "完整获批设计或审阅方案后的明确委托不重复确认，部分答复不批准剩余重要决策",
+            "只有恢复既定行为的明确低风险修改可直接执行，快修不绕过重要确认"
           ],
           "rejected": [
-            "hard approval gate for every change",
-            "mandatory PRD/spec artifact for bounded tasks"
+            "所有精确文案与局部修复都重新申请批准",
+            "小任务强制 spec/计划文件、方案自动提交及运行器专属工具"
           ]
         },
         {
@@ -36,8 +37,9 @@
             "RED/GREEN/REFACTOR for skill authoring"
           ],
           "adapted": [
-            "skill evaluation is proportional to the rule's risk",
-            "pure reference skills do not need pressure scenarios"
+            "参考/事实修改做轻验证，纪律与入口变化才做相应行为对照",
+            "区分旧版、无新规则和无工作流对照；核对实际注入，不只传 --no-skills",
+            "对照也通过或运行阻塞时如实记录，不强造 RED 失败或成功率改善"
           ],
           "rejected": [
             "mandatory subagent campaign when no subagent tool is installed",
@@ -54,7 +56,8 @@
             "capture rationalizations and close loopholes"
           ],
           "adapted": [
-            "use a fresh Pi process or manual control when pi-subagents is unavailable"
+            "无 subagent 时使用新的 Pi 进程或明确的人工对照，禁用不属于测试的自动注入与真实业务工具",
+            "压力覆盖真实诱惑，不要求每场景凑三类；原始证据与一个现有记录足够"
           ],
           "rejected": [
             "treating every skill as a discipline-enforcing skill"
@@ -62,17 +65,37 @@
         },
         {
           "upstream": "skills/verification-before-completion/SKILL.md",
-          "local": "skills/reviewable-delivery/SKILL.md",
-          "status": "absorbed",
+          "local": "skills/verification-before-completion/SKILL.md",
+          "status": "adapted",
           "absorbed": [
-            "evidence before completion claims",
-            "run the relevant verification command before reporting success"
+            "先运行匹配声明的验证，再按实际输出给结论",
+            "需求完成必须回到要求逐项核对，不能用测试通过替代需求覆盖"
           ],
           "adapted": [
-            "verification is selected by risk and slice rather than one universal checklist"
+            "逐项区分实现、真实接入与结果证据；由 reviewable-delivery 引用这一完成门",
+            "局部、mock、选择评估与 skip 不证明整体业务端到端，证据强度按风险选择",
+            "简短汇报仍需暴露未实现与未验证，不默认贴全量日志"
           ],
           "rejected": [
-            "uniform heavyweight verification for every change"
+            "每个任务统一全仓重型验证",
+            "无证据的全局无缺陷保证或只靠禁用话术判定完成"
+          ]
+        },
+        {
+          "upstream": "skills/receiving-code-review/SKILL.md",
+          "local": "skills/reviewable-delivery/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "实施审查建议前核实真实需求、使用情况和既定设计",
+            "不要为了所谓专业完备新增未使用能力"
+          ],
+          "adapted": [
+            "在本次 diff 与受影响调用链中检查兼容、配置、抽象、一次性工具的维护负担",
+            "必要兼容集中边界且有删除条件，不能因仓内零引用就删除外部契约"
+          ],
+          "rejected": [
+            "照搬回复措辞禁令和 GitHub 专属操作",
+            "审查建议自动扩建或覆盖用户已确认范围"
           ]
         },
         {
@@ -86,8 +109,9 @@
             "re-analyze after a failed fix"
           ],
           "adapted": [
-            "reproduction and post-fix evidence are explicit status gates",
-            "TDD is risk-driven rather than mandatory for every debug task"
+            "复现、未运行和修复失败准确区分；原始场景仍失败保持 reproduced",
+            "编译诊断和完整代码事实也是证据；获批的最小修复可先推进但运行期原始场景仍标 unverified",
+            "明确问题走短证据链，完整报告按需复用，TDD 按风险而非每次强制"
           ],
           "rejected": [
             "uniform four-phase ceremony for every incident",
@@ -128,12 +152,14 @@
             "root-cause fixes over caller-by-caller patches"
           ],
           "adapted": [
-            "minimality is applied after understanding and risk classification",
-            "non-trivial logic keeps one runnable verification check"
+            "最小化在理解真实流程与批准范围后进行；优先长期概念、公开参数和运行分支更少，而非只看 diff",
+            "先验证框架与既有能力的真实接入，必要架构边界和测试注入仍可保留",
+            "默认开发期干净替换需阶段及消费者证据，不把数据安全或明确要求简化掉"
           ],
           "rejected": [
-            "always-on output compression as a workflow requirement",
-            "Ponytail-specific runtime status and mode persistence"
+            "复杂需求先发缩水版再询问用户，或用低风险默认值覆盖重要未知",
+            "一刀切禁止单实现接口、必要测试或所有未来相关结构",
+            "持续模式、极端输出压缩与 Ponytail 专属状态"
           ]
         }
       ]
@@ -207,6 +233,51 @@
           "rejected": [
             "Oz cloud agents and mandatory screen recordings",
             "UI-only reproduction workflow for backend and code-level bugs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "anthropics-claude-code",
+      "url": "https://github.com/anthropics/claude-code.git",
+      "ref": "main",
+      "baseline": "6160717d8994f236ab381cf534fc1cde5347c12f",
+      "mappings": [
+        {
+          "upstream": "plugins/claude-opus-4-5-migration/skills/claude-opus-4-5-migration/references/prompt-snippets.md",
+          "local": "skills/adaptive-workflow/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "能直接同步改代码时不要加兼容垫片",
+            "不为一次性操作或假想未来新增工具、抽象和配置",
+            "信任已验证的内部保证，不为不可能的情况增加降级或校验；保留系统边界检查"
+          ],
+          "adapted": [
+            "默认策略按当前边界阶段和真实消费者判断，必要兼容先确认并可移除",
+            "一次性数据迁移不默认注册正式命令，同时保留数据与必要证据",
+            "扩展直接注入 adaptive-workflow 完整正文，避免副本规则漂移"
+          ],
+          "rejected": [
+            "把 Opus 4.5 提示经验当所有模型的效果保证",
+            "盲目信任内部状态或把反过度设计当成删除安全与当前需求的理由"
+          ]
+        },
+        {
+          "upstream": "plugins/feature-dev/commands/feature-dev.md",
+          "local": "skills/clarifying-requirements/SKILL.md",
+          "status": "adapted",
+          "absorbed": [
+            "先探索代码再澄清范围、兼容性、异常与集成点",
+            "展示技术取舍与推荐，经批准后实施"
+          ],
+          "adapted": [
+            "仅问影响用户结果的重要问题，内部细节助手决策",
+            "检查维度标记已有保证、必要、不适用或未决，不自动全部实现",
+            "把兼容、常驻机制和验收缺口纳入短设计与授权范围"
+          ],
+          "rejected": [
+            "强制七阶段、多个子代理和 TodoWrite",
+            "每个小任务都建立完整架构文档"
           ]
         }
       ]

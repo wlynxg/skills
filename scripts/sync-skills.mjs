@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 const manifestPath = join(process.cwd(), "sources", "manifest.json");
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
@@ -10,17 +10,37 @@ const args = process.argv.slice(2);
 const sourceFilter = valueAfter("--source");
 const markBaselineId = valueAfter("--mark-baseline");
 const writeReport = args.includes("--write-report");
-const reportPath = valueAfter("--report") || join("reports", `sync-${new Date().toISOString().replace(/[:.]/g, "-")}.md`);
+const REPORTS_ROOT = resolve(process.cwd(), "reports");
+const reportPath = valueAfter("--report") || join(REPORTS_ROOT, `sync-${new Date().toISOString().replace(/[:.]/g, "-")}.md`);
 const confirmed = args.includes("--yes");
 
 if (args.includes("--help")) {
-  console.log(`Usage: node scripts/sync-skills.mjs [options]\n\nOptions:\n  --source <id>             inspect one manifest source\n  --write-report            also write the Markdown report\n  --report <path>          report path with --write-report\n  --mark-baseline <id>     advance one source baseline\n  --yes                    confirm baseline update\n`);
+  console.log(`Usage: node scripts/sync-skills.mjs [options]\n\nOptions:\n  --source <id>             inspect one manifest source\n  --write-report            also write the Markdown report\n  --report <path>           report file inside reports/ (no symlinks)\n  --mark-baseline <id>     advance one source baseline\n  --yes                    confirm baseline update\n`);
   process.exit(0);
 }
 
 if (markBaselineId && !confirmed) {
   console.error("Refusing to change a baseline without --yes.");
   process.exit(2);
+}
+
+const absoluteReportPath = writeReport ? checkedReportPath(reportPath) : undefined;
+
+function checkedReportPath(path) {
+  const output = resolve(process.cwd(), path);
+  const child = relative(REPORTS_ROOT, output);
+  if (!child || isAbsolute(child) || child === ".." || child.startsWith(`..${sep}`)) {
+    throw new Error("Report must be a file inside reports/; refusing to overwrite other resources.");
+  }
+  // 写报告前拦截现有符号链接，避免借报告路径覆盖 skill 或 manifest。
+  for (let parent = output; parent !== dirname(REPORTS_ROOT); parent = dirname(parent)) {
+    try {
+      if (lstatSync(parent).isSymbolicLink()) throw new Error("Report path must not traverse a symbolic link.");
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+  }
+  return output;
 }
 
 function valueAfter(flag) {
@@ -90,10 +110,11 @@ function inspectSource(source) {
     }
 
     const rawChanges = git(repo, ["diff", "--name-status", "--find-renames", "-z", source.baseline, current, "--", "."]);
-    const changes = parseNameStatus(rawChanges).filter(change =>
-      [change.path, change.oldPath].some(path => path && /(^|\/)SKILL\.md$/.test(path)),
-    );
     const mappedPaths = new Set((source.mappings ?? []).map(mapping => mapping.upstream));
+    // 已登记的 reference/command 同样需要检查；新候选仍只发现 SKILL.md。
+    const changes = parseNameStatus(rawChanges).filter(change =>
+      [change.path, change.oldPath].some(path => path && (mappedPaths.has(path) || /(^|\/)SKILL\.md$/.test(path))),
+    );
     const currentSkillFiles = listSkillFiles(repo, current);
     const candidates = currentSkillFiles.filter(path => !mappedPaths.has(path));
     const mappedChanges = changes
@@ -110,7 +131,7 @@ function inspectSource(source) {
       "",
       "### Changes since baseline",
     ];
-    if (changes.length === 0) lines.push("- No changed `SKILL.md` files.");
+    if (changes.length === 0) lines.push("- No changed skill or mapped source files.");
     else for (const change of changes) lines.push(`- ${change.status}: ${change.oldPath ? `${change.oldPath} -> ` : ""}${change.path}`);
 
     lines.push("", "### Mapped changes");
@@ -118,9 +139,10 @@ function inspectSource(source) {
     for (const change of mappedChanges) {
       const mapping = change.mapping;
       const diffPath = change.path || change.oldPath;
+      const diffPaths = [change.oldPath, change.path].filter(Boolean);
       let diff = "";
       try {
-        diff = git(repo, ["diff", "--no-ext-diff", "--unified=3", source.baseline, current, "--", diffPath]);
+        diff = git(repo, ["diff", "--no-ext-diff", "--find-renames", "--unified=3", source.baseline, current, "--", ...diffPaths]);
       } catch (error) {
         diff = `Unable to read diff: ${error.message}`;
       }
@@ -158,7 +180,6 @@ for (const source of selected) {
 const report = ["# Upstream Skills Sync Report", `Generated: ${new Date().toISOString()}`, "", ...results.map(result => result.text), ""].join("\n");
 console.log(report);
 if (writeReport) {
-  const absoluteReportPath = resolve(process.cwd(), reportPath);
   mkdirSync(dirname(absoluteReportPath), { recursive: true });
   writeFileSync(absoluteReportPath, report, "utf8");
   console.error(`Report written to ${relative(process.cwd(), absoluteReportPath)}`);

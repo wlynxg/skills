@@ -1,47 +1,40 @@
 ---
 name: creating-skills
-description: Use when creating, editing, evaluating, or packaging a reusable Pi skill, especially after absorbing a workflow from another skill or observing repeated agent mistakes.
+description: Use when creating, editing, evaluating, or packaging reusable Pi skills; not for ordinary feature development, bug fixes, or reading external technical documentation.
 ---
 
-# Creating Skills
+# 编写与评估技能
 
-## Core Rule
+Skill 是可复用的判断和操作指南，不是每次业务开发都要运行的流程。先定位具体缺口，再写能解决它的最短规则；不为凑评估制造失败或流程。
 
-Skill 是可复用的判断和操作指南，不是一次会话的复盘文章。先验证真正的失败，再写能修复该失败的最短规则。
+## 按改动选择验证
 
-## Authoring Flow
+- **参考内容、路径、触发描述和事实纠错**：查源事实、结构、链接与一个应用例，不强制模型压力测试。
+- **影响实际选择的纪律规则**，如批准、兼容、工具调用或完成声明：保存旧版本/对照，用相同场景做行为评估。
+- **技能描述或调用入口变化**：同时验证触发和不触发，以及实际注入/读取；可发现、被计数和被遵守是三回事。
 
-1. **Define the trigger**：描述症状、任务类型和不该触发的相邻场景。
-2. **Write an evaluation**：至少一个正常场景；纪律型规则再加 2-3 个包含时间、惯性、权威或沉没成本的压力场景。
-3. **Run a control**：没有新 skill 时观察默认行为，记录具体错误或合理化。没有可用 subagent 时，使用新的 Pi 进程或同一进程的无 skill 对照。
-4. **Write the minimum guidance**：先写触发、决策、输出契约和一个例子。不要复制上游全文。
-5. **Verify with the same scenarios**：确认行为改变，而不是只确认模型能复述文字。
-6. **Refactor**：只针对实际出现的新漏洞补规则；纯参考型 skill 可用结构、链接和检索检查代替压力测试。
+默认复用已有场景、记录和脚本，不为小修订另建测试框架或多份计划。skill 评估不代表生产开发必须严格 TDD。
 
-## Skill Shape
+## 编写流程
 
-- `SKILL.md` 的 frontmatter 只包含有效的小写名称和以 `Use when...` 开头的触发描述。
-- 正文保持短小；重型模板和评估材料放到一层深的 `references/`。
-- 描述写“何时触发”，不要把完整流程塞进 description。
-- 使用明确的输出模板解决“输出形状错误”；使用条件规则解决“不同风险不同流程”。
-- 一个优秀、可运行或可直接适配的例子胜过多个泛化例子。
+1. 明确触发与不触发场景、失败证据和要改变的可观察行为。
+2. 纪律规则至少包含一个正常场景和能覆盖真实诱惑的压力场景；参考型改动按上面的轻验证执行。
+3. 修改前保留对照；声明比较旧规则、无新规则还是无工作流，不混用概念。若对照也通过，记录“未量化改善”，不能编造 RED 失败。
+4. 写入现有最合适位置，保留判断条件、输出边界与一个例子；重型参考放一层 `references/`。
+5. 同条件复核行为与入口，查看实际选择、工具动作和结果，不以复述规则代替遵守。
+6. 只针对新观察到的绕过修订；证据不足或测试受阻如实报告，不为了宣称有效扩大规则。
 
-## Local Acceptance
+具体对照、隔离与记录格式见 [evaluating-skills.md](references/evaluating-skills.md)。没有 subagent 时使用新 Pi 进程，不伪造工具或执行结果。
 
-新 skill 至少通过：
+## 本库结构要求
 
-- Pi 能发现它，名称和描述合法。
-- 触发场景能找到并读取它。
-- 不触发场景不会把普通任务升级成不必要的流程。
-- 规则型 skill 在压力场景下保留关键行为。
-- `node scripts/validate-skills.mjs` 通过，且无 TODO/TBD 占位。
+- `name` 是合法小写名称，`description` 以 `Use when` 开头，写清何时触发而非塞入完整流程。
+- 必要时使用 `disable-model-invocation: true` 限制维护操作为显式调用；不要无依据增加 frontmatter 字段。
+- 正文短小，模板/评估放 reference；不复制上游全文或重复已有核心规则。
+- 不触发场景不能把普通小改动升级成 PRD、严格 TDD 或技能维护。
 
-写 skill 本身不意味着以后开发必须 TDD。TDD 是某些高风险生产行为的可选工具；skill 规则的评估才需要在适当场景下做行为验证。
+## 验收与交付
 
-## Common Mistakes
+运行 `node scripts/validate-skills.mjs`，检查引用存在、无占位、Pi 可发现；入口涉及扩展或脚本时运行对应检查。纪律型改动另报告行为评估的范围、实际结果与限制，结构通过不代表模型效果已经改善。
 
-- 把上游 skill 全文复制进本地，导致来源边界和本地意图消失。
-- 只测“模型是否知道规则”，不测它在时间压力下是否执行规则。
-- 把所有 skill 都当作纪律型 skill，造成无意义的评估成本。
-- description 写成 workflow 摘要，模型因此跳过正文。
-- 新增多个 skill 后只验证最后一个；每个 skill 都要单独通过结构和触发检查。
+若同时吸收上游原则，由 `absorbing-skills` 记录来源；不重复跑一套作者流程。未获发布授权不自动提交或推送，方案与私有评估记录不夹带提交。

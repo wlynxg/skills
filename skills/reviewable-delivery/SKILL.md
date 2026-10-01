@@ -1,6 +1,6 @@
 ---
 name: reviewable-delivery
-description: Use when a change spans multiple modules, is difficult for one person to review, introduces high-impact behavior, or needs a clear audit trail from decisions to verification evidence.
+description: Use when high-impact or complex cross-module work is difficult to review as a whole or needs an audit trail; not merely because a routine change touches multiple files.
 ---
 
 # Reviewable Delivery
@@ -11,7 +11,7 @@ description: Use when a change spans multiple modules, is difficult for one pers
 
 ## Start With A Review Packet
 
-深度任务开始时创建 `docs/reviews/<slug>-packet.md`。使用 [review-packet.md](references/review-packet.md) 的结构，先写：
+深度任务使用 `docs/reviews/<slug>-packet.md` 或用户指定位置；复用已有记录，不重复生成方案、计划与测试目录。使用 [review-packet.md](references/review-packet.md) 的结构，先写：
 
 - 目标、非目标和成功标准。
 - 系统边界、数据流、不变量和关键决策。
@@ -19,13 +19,13 @@ description: Use when a change spans multiple modules, is difficult for one pers
 - 垂直切片：用户结果、文件边界、验证命令、状态。
 - 需要用户确认的不可逆或高影响决策。
 
-不确定的内容标成假设或未决问题，不伪装成已确认设计。
+不确定的内容标成假设或未决问题，不伪装成已确认设计；目标、非目标与切片范围必须有用户依据。用户批准整个方案后可分段实施，但分段交付不等于自行缩减验收。方案文档不自动提交。
 
 ## Slice Rules
 
 每个切片必须交付一个可独立验证的结果，例如一条端到端路径、一个完整接口行为或一个可运行的迁移前检查。避免按“先改类型、再改工具、最后改 UI”这种无法单独验收的技术层切片。
 
-普通切片可以连续执行。涉及认证、权限、金额、迁移、并发、公共 API、数据删除或不可逆操作时暂停，先展示：
+已批准范围内的普通切片可以连续执行，不逐文件重复请示。出现尚未批准的业务语义、兼容路径、常驻工具、范围变化，或认证、权限、金额、迁移、并发、公共稳定契约、数据删除等新高影响决策时暂停，先展示：
 
 ```text
 边界：...
@@ -41,10 +41,23 @@ description: Use when a change spans multiple modules, is difficult for one pers
 
 - 修改的文件和行为变化。
 - 实际运行的命令及结果。
-- 与成功标准对应的证据。
-- 未验证的边界和后续风险。
+- 与各验收项对应的实现、真实接入和当前改动后的证据。
+- 未实现、未运行、skip 或环境阻塞分别记录，不以“全绿”掩盖。
+
+普通切片可用短列表；需求多时在 packet 中用「验收项 / 实现与入口 / 验证 / 状态」表。完成一个切片不意味着整个需求完成。
 
 验证强度按风险选择。不要为了满足形式批量增加测试；但高风险行为不能只靠“看起来正确”。稳定 bug、接口契约和数据一致性问题优先留下可重复的回归检查。TDD 只在风险或用户要求支持它时启用。
+
+## 复杂度与旧路径检查
+
+只审本次变化及其受影响调用链，不借机全仓重构：
+
+- 新公开参数、包装、抽象或正式工具，是否有当前需求、真实调用方或必要架构边界？优先复用框架与现有能力。
+- 可同步升级的未发布契约，是否还残留旧入口、别名、双轨配置与过期测试？同步清理；不能仅凭仓内零调用删外部稳定接口。
+- 获批的必要兼容是否只在边界适配，核心单一语义，删除条件可验证？
+- 是否把一次性迁移、假想未来或已由构造保证的情况变成常驻分支？去掉无依据机制，保留安全、数据与真实失败保护。
+
+审查者提出的额外“专业能力”先核实依据，不能自动扩建；用户明确要求的能力也不能借简化裁掉。
 
 ## Human Review Surface
 
@@ -54,4 +67,4 @@ description: Use when a change spans multiple modules, is difficult for one pers
 
 ## Completion Gate
 
-没有运行验证命令，不声称“完成”或“全部通过”。发现切片之间的假设不一致时，回到 packet 修正边界，再继续实现。
+交付前使用 `verification-before-completion`：回到完整获批范围，逐项核对实现、接入与证据。没有相关验证，不声称完成；仍有未实现或未验证项，不把局部通过当整体完成。发现切片之间的假设不一致时先修正设计；重要范围或业务决策变更要重新确认。

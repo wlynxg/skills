@@ -1,58 +1,35 @@
-# Debug Report Template
+# 调试记录模板
+
+仅在需要完整证据记录时使用；按适用部分填写，优先补进已有报告，不制造重复文件。日志与请求脱敏。
 
 ```markdown
-# Debug Report: <short title>
+# <问题> 调试记录
 
-## Status
-- State: reproduced | not-reproduced | blocked | verified-fixed | unverified
-- Environment: <runtime, OS, version, config, commit>
-- Scope: <command, endpoint, test, user flow>
+## 当前状态与范围
+- 状态：reproduced / not-reproduced / blocked / unverified / verified-fixed
+- 环境、版本、输入与触发条件：
+- 用户期望与实际症状：
 
-## Symptom
-- Actual:
-- Expected:
-- First observed:
-- Input / IDs / ordering:
+## 证据与因果解释
+- Observed：实际输出或代码位置。
+- Inferred：由事实推导的因果链。
+- Unknown：尚未验证的解释。
+- 下一步最小实验或缺失条件：
 
-## Reproduction
-### Before Fix
-- Command or exact steps:
-- Result:
-- Evidence:
+## 修复与复测
+- 修复前原始命令/步骤、结果与证据：
+- 最小根因修改与受影响调用方：
+- 最后修改后同条件命令/步骤、结果与证据：
 
-### After Fix
-- Same command or steps:
-- Result:
-- Evidence:
-
-## Root Cause
-- File and line:
-- Observed facts:
-- Causal chain:
-- Confidence: high | medium | low
-
-## Hypotheses Not Confirmed
-| Hypothesis | Supporting evidence | Missing/falsifying evidence | Next experiment |
+| 检查 | 实际命令/操作 | 结果与证据 | 未覆盖/阻塞 |
 |---|---|---|---|
-| ... | ... | ... | ... |
+| 原始场景 | ... | ... | ... |
+| 相关回归 | ... | ... | ... |
 
-## Change
-- Files:
-- Root-cause change:
-- Intentionally not changed:
-
-## Verification
-| Check | Command / steps | Result | Evidence |
-|---|---|---|---|
-| Original reproduction | `...` | pass/fail/blocked | ... |
-| Focused test | `...` | pass/fail/not-run | ... |
-| Build/integration | `...` | pass/fail/not-run | ... |
-
-## Remaining Risk
-- ...
-
-## User Action Needed
-- <missing access, data, decision, or confirmation; write "none" when empty>
+## 结论
+- 已验证范围：
+- 修复是否仍失败、哪些未验证：
+- 最小解除条件/重要待确认决策：
 ```
 
-`verified-fixed` 只有在 Before Fix 确实失败、After Fix 使用同一场景通过时才允许使用。代码检查通过或测试未覆盖原始症状时只能是 `unverified`。
+只有原始场景确实失败、修复后同条件通过且结果匹配时才使用 `verified-fixed`。原始场景仍失败是 `reproduced` 并明确修复无效；修改后未验证是 `unverified`，不能混成未复现。

@@ -1,48 +1,47 @@
-# Review Packet Template
+# 可审查交付记录模板
+
+只保留任务适用部分，复用已有记录，不为了填模板扩建功能。方案文档不自动提交。
 
 ```markdown
-# <Feature> Review Packet
+# <功能> 交付记录
 
-## Goal
-- User outcome:
-- Success criteria:
+## 目标与范围
+- 用户结果与验收标准：
+- 已确认非目标及依据：
+- 关键决策的批准范围：
 
-## Non-goals
-- Not included:
+## 边界与不变量
+- 真实入口、调用方与数据流：
+- 当前契约阶段、消费者及需保留的数据：
+- 必要兼容对象、边界适配与删除条件（没有则不加）：
+- 新增常驻机制及当前依据（没有则不加）：
+- 安全、数据一致性及真实异常处理：
 
-## Boundaries and Invariants
-- Boundary:
-- Invariant:
-- Compatibility requirement:
+## 决策与风险
+- 已确认决策：
+- 推荐与理由：
+- 重要未决问题/暂停点：
+- 实质风险、缓解措施与剩余限制：
 
-## Data Flow
-<短文字或 Mermaid 图；只画影响本次变更的路径>
-
-## Risks
-| Risk | Likelihood | Impact | Mitigation | Residual risk |
-|---|---:|---:|---|---|
-| ... | low/medium/high | low/medium/high | ... | ... |
-
-## Decisions
-- Decision:
-- Reason:
-- Alternatives rejected:
-
-## Vertical Slices
-| Slice | User-visible result | Main files | Verify | Status |
+## 垂直切片
+| 切片 | 可独立验收结果 | 改动边界 | 验证 | 状态 |
 |---|---|---|---|---|
 | 1 | ... | ... | `...` | pending |
 
-## Stop Points
-- [ ] Confirm before changing ...
-
-## Evidence Log
-| Slice | Command | Result | Evidence |
+## 验收覆盖与证据
+| 验收项 | 实现与真实接入 | 实际命令/操作及结果 | 未实现/未验证/阻塞 |
 |---|---|---|---|
-| 1 | `...` | pass/fail | ... |
+| ... | ... | ... | ... |
 
-## Remaining Risks
-- ...
+## 复杂度检查
+- 本次替代的旧路径及调用方是否同步处理：
+- 新接口、配置、抽象和工具的当前使用依据：
+- 是否出现无依据兼容、静默降级或推测性防御：
+
+## 当前结论
+- 已验证范围：
+- 未实现、skip 与环境限制：
+- 最小解除条件：
 ```
 
-状态只使用 `pending`、`in-progress`、`verified`、`blocked`。不要把“代码写完”当作 `verified`。
+切片状态使用 `pending`、`in-progress`、`verified`、`blocked`。代码写完或局部测试通过不等于整个切片 `verified`；只有该切片验收项均有匹配证据时才能使用。

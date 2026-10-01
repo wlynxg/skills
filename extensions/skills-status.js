@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,6 +6,17 @@ const ICON = "🐂🐎";
 const ENTRY_TYPE = "personal-pi-skills";
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SYNC_SCRIPT = join(PACKAGE_ROOT, "scripts", "sync-skills.mjs");
+const ADAPTIVE_SKILL = "adaptive-workflow";
+const SKILL_FILENAME = "SKILL.md";
+const ADAPTIVE_SKILL_PATH = join(PACKAGE_ROOT, "skills", ADAPTIVE_SKILL, SKILL_FILENAME);
+const DESIGN_ONLY_POLICY = "当前请求只做澄清或方案：允许只读探索与方案记录，不实施业务改动。";
+const MODE_POLICIES = {
+  clarify: DESIGN_ONLY_POLICY,
+  design: DESIGN_ONLY_POLICY,
+  review: "当前请求默认只读审查；没有修正授权，不自动实施审查建议。",
+  deep: "当前请求使用可审查记录与垂直切片，按已批准范围推进。",
+  debug: "当前请求遵循 debugging-with-evidence：区分未复现、未验证与修复后仍失败，不给无证据的修复声明。",
+};
 
 const MODE_PREFIXES = [
   ["深度设计", "deep"],
@@ -76,14 +87,11 @@ function addSkillCount(counts, name, amount = 1) {
 
 function buildPolicy(mode) {
   const selected = mode === "auto" ? "自动判断 fast / normal / deep" : MODE_LABELS[mode] || mode;
-  const riskPolicy = mode === "deep"
-    ? "当前请求为深度任务：先建立 review packet 和可独立验证的垂直切片。"
-    : "只有实际出现新子系统、公共 API、认证/权限、金额、迁移、并发、数据写入或不可逆风险时才升级 deep。";
-  const replyPolicy = "输出契约：先回答用户当前问题。默认简洁：纯问答或状态确认使用 1-3 句；需要枚举时使用一个紧凑列表。实际改动完成时只说明变更、实际验证和必要风险，最多 3 个短要点。不要复述请求、逐步播报常规过程或展开泛化后续建议；只有用户要求详情、存在实质风险/阻塞，或处于 deep/review/debug 时再展开。最终答复在核心内容后固定追加两行：不确定：... 和 遗漏：...；每行一句，只写真实且影响结论的内容，没有则写“无”，不得扩成段落或编造风险。用户明确要求精确字符串、机器可读格式或仅输出命令结果时，以该格式为准，不追加这两行。执行中只在方向变化、遇阻或完成有意义阶段时发一条短更新，不附自检。";
-  const debugPolicy = mode === "debug"
-    ? "证据调试仍须先建立原始复现；原始复现未在修复后重新通过时，只能报告 blocked/not-reproduced/unverified。最终先给状态和决定性证据，完整报告按需展开。"
-    : "";
-  return `<!-- personal-pi-mode:${mode} -->\n## Personal adaptive workflow\n当前请求模式：${selected}。先读最少必要上下文，选择覆盖风险的最短流程。明确、局部、低风险的小改动直接完成并做最小验证，不生成 PRD、计划文件、批量测试或无关重构；有歧义时只问会改变实现方向的问题。${riskPolicy} 默认不启用严格 TDD，只有高风险、稳定回归问题或用户明确要求时才使用。优先复用仓库已有代码、标准库和原生能力。${replyPolicy}${debugPolicy}`;
+  // 每轮读取同一份正文，避免入口提示与 skill 的确认、兼容和验收规则漂移。
+  const guide = readFileSync(ADAPTIVE_SKILL_PATH, "utf8")
+    .replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "")
+    .trim();
+  return `<!-- personal-pi-mode:${mode} -->\n<skill name="${ADAPTIVE_SKILL}" location="${ADAPTIVE_SKILL_PATH}">\n${guide}\n</skill>\n当前请求模式：${selected}。${MODE_POLICIES[mode] || ""}`;
 }
 
 function skillNameFromPath(filePath, knownSkills) {
@@ -91,7 +99,7 @@ function skillNameFromPath(filePath, knownSkills) {
   for (const [name, skill] of knownSkills) {
     if (normalized === normalizedPath(skill.filePath)) return name;
   }
-  if (!normalized.endsWith("/SKILL.md")) return undefined;
+  if (!normalized.endsWith(`/${SKILL_FILENAME}`)) return undefined;
   const parent = normalized.split("/").at(-2);
   return parent && /^[a-z0-9-]+$/.test(parent) ? parent : undefined;
 }
@@ -256,14 +264,15 @@ export default function personalPiSkillsExtension(pi) {
     nextOverride = undefined;
     const options = event.systemPromptOptions || {};
     observePrompt(event.prompt, options, ctx);
-    markSkill("adaptive-workflow", ctx);
-    return { systemPrompt: `${event.systemPrompt}\n\n${buildPolicy(activeMode)}` };
+    const policy = buildPolicy(activeMode);
+    markSkill(ADAPTIVE_SKILL, ctx);
+    return { systemPrompt: `${event.systemPrompt}\n\n${policy}` };
   });
 
-  pi.on("tool_call", async (event, ctx) => {
-    if (event.toolName !== "read") return;
+  pi.on("tool_result", async (event, ctx) => {
+    if (event.toolName !== "read" || event.isError) return;
     const name = skillNameFromPath(event.input?.path, knownSkills);
-    if (name && (knownSkills.has(name) || name === "adaptive-workflow" || name === "syncing-upstream")) markSkill(name, ctx);
+    if (name && (knownSkills.has(name) || name === ADAPTIVE_SKILL || name === "syncing-upstream")) markSkill(name, ctx);
   });
 
   pi.on("agent_settled", async (_event, ctx) => {
