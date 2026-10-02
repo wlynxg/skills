@@ -91,6 +91,38 @@ adaptive-workflow*3, debugging-with-evidence*1
 
 `/debug` 会显式加载证据调试 skill；普通日志、报错和异常任务也会按 skill 描述自动匹配。
 
+## Fast 模式
+
+独立扩展 `extensions/fast-mode.js`，使用 Pi 原生 `pi.getSettings()`；当前实现与验证基于 **Pi 1.0.0**，没有该 API 的旧宿主会明确报告加载错误，不另建兼容配置读取。
+
+默认对以下有官方 Fast/Priority 能力的模型请求注入 `priority` 服务等级，不改模型、思考强度或提示词：
+
+| 家族 | 协议 | 注入位置 | 说明 |
+|---|---|---|---|
+| `gpt-*` | OpenAI Responses / Codex Responses / Chat Completions / Azure Responses | 请求体 `service_tier: "priority"` | OpenAI 官方 `priority` 与 `fast` 等价；Azure 按目录模型身份识别，仅 GPT 部署注入。 |
+| `gemini-*` | Google Generative AI 及 OpenAI 兼容端点 | 原生 `config.serviceTier: "priority"` / 兼容体 `service_tier` | Gemini 默认 standard，Priority 约贵 75–100%，可透明降级。 |
+| `grok-*` | OpenAI 系协议 | 请求体 `service_tier: "priority"` | xAI Priority 约为标准价格的 2 倍。 |
+
+图像、语音、embedding 等非文本推理变体不注入。Anthropic Claude 不注入：官方 `service_tier` 只有 `auto`/`standard_only`，默认 `auto` 已在有优先容量时自动使用，且新容量承诺已停售，没有可强制开启的 Fast 值。Azure Provisioned/PTU 与 Vertex 均为部署级容量，不属于请求参数。
+
+当前模型适用且开关开启时，原生状态栏显示 `⚡ Fast`；关闭、切到非适用模型或退出时移除。不替换 footer，不影响技能计数。
+
+在 `~/.pi/agent/settings.json` 或项目 `.pi/settings.json` 中配置：
+
+```json
+{
+  "fastMode": false
+}
+```
+
+省略或 `true` 为开启，`false` 关闭本扩展的自动注入；已信任项目配置优先于全局配置。修改后执行 `/reload` 或重启 Pi。配置必须是布尔值，无效类型会报告扩展错误并清除图标，不默认强开；Pi 的请求钩子报错后可能继续发送原请求，而不是强制中止。
+
+已有显式 `service_tier`/`serviceTier` 优先保留，包括 `default`、`flex` 等。因此关闭本扩展不等于强制服务端 Standard，也不会覆盖其他配置已选择的等级或远端项目默认值。
+
+**费用与结果边界：** Priority/Fast 会消耗更高的额度或费用（OpenAI/Codex 约为 Standard 的 2 倍额度，Gemini 约贵 75–100%，xAI 约 2 倍），具体取决于模型、账号和订阅。`⚡ Fast` 表示该扩展对当前模型的客户端默认策略开启，不是上游已接受 Fast、每个请求都采用 Fast 或实际提速的证明；实际处理层级应核对服务端回显（如响应 `service_tier`、`x-gemini-service-tier`）。不支持该参数的上游错误原样报告，不静默移除参数重试。Pi 本地费用估算不等于官方实际计费或订阅额度消耗。
+
+依据：[OpenAI API Fast mode](https://developers.openai.com/api/docs/guides/fast-mode)、[Codex Speed](https://developers.openai.com/codex/speed)、[Anthropic Service tiers](https://docs.claude.com/en/api/service-tiers)、[Gemini Priority inference](https://ai.google.dev/gemini-api/docs/priority-inference)、[xAI Priority Processing](https://docs.x.ai/developers/advanced-api-usage/priority-processing)。
+
 ## Skill 来源
 
 这些 skills 是针对 Pi 的本地改写和组合，不是对上游仓库的整套复制：
@@ -134,6 +166,7 @@ node scripts/sync-skills.mjs --source superpowers --mark-baseline superpowers --
 npm run validate
 npm run test:sync
 npm run test:extension
+npm run test:fast-mode
 git diff --check
 ```
 
